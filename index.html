@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="cs" class="antialiased">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>BioTrack Engine V8 Pro</title>
+    <script>
+        window.addEventListener('error', function(e) {
+            const errEl = document.createElement('div');
+            errEl.style = 'position:fixed;top:0;left:0;z-index:9999;background:red;color:white;padding:20px;';
+            errEl.innerText = 'JS Error: ' + e.message + ' at ' + e.filename + ':' + e.lineno;
+            document.body.appendChild(errEl);
+        });
+    </script>
+    <!-- Styles -->
+    <link rel="stylesheet" href="/src/index.css">
+    
+    <!-- Scripts dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- App logic -->
+    <script src="/app.js" defer></script>
+    <script src="/app-ui.js" defer></script>
+    <script src="/app-analytics.js" defer></script>
+    <script src="/charts.js" defer></script>
+</head>
+<body class="bg-[#eef2f6] dark:bg-[#030303] text-slate-900 dark:text-slate-100 min-h-screen flex flex-col md:flex-row transition-colors duration-500 relative overflow-x-hidden selection:bg-accent-500/30">
+    <div class="bg-orb bg-orb-1"></div><div class="bg-orb bg-orb-2"></div><div class="bg-orb bg-orb-3"></div>
+
+    <!-- Animated Background -->
+    <div class="fixed inset-0 pointer-events-none z-[-1] overflow-hidden">
+        <div class="absolute -top-[10%] -left-[10%] w-[70vw] h-[70vw] max-w-[700px] max-h-[700px] rounded-full bg-accent-500/15 blur-[100px] dark:bg-accent-600/15 dark:blur-[140px] mix-blend-multiply dark:mix-blend-screen" style="animation:blobPulse 18s infinite alternate ease-in-out"></div>
+        <div class="absolute -bottom-[20%] -right-[10%] w-[60vw] h-[60vw] max-w-[600px] max-h-[600px] rounded-[40%_60%_70%_30%] bg-indigo-500/15 blur-[90px] dark:bg-indigo-600/15 dark:blur-[130px] mix-blend-multiply dark:mix-blend-screen" style="animation:blobSpin 25s infinite linear"></div>
+    </div>
+
+    <!-- Mobile Header -->
+    <header class="md:hidden fixed top-0 w-full z-40 bg-white/60 dark:bg-[#0a0a0c]/60 backdrop-blur-[40px] saturate-[150%] border-b border-white/40 dark:border-white/5 pt-[var(--safe-top)] transition-all shadow-sm dark:shadow-none">
+        <div class="flex items-center justify-between px-5 h-[64px]">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-[14px] bg-gradient-to-br from-accent-400 to-accent-600 shadow-glow flex items-center justify-center text-white font-black text-lg">B</div>
+                <div>
+                    <h1 id="pageTitle" class="font-black text-lg leading-tight tracking-tight">Přehled</h1>
+                    <p class="text-[9px] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-bold">BioTrack V8</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <button onclick="togglePrivacy()" class="p-2.5 rounded-full bg-slate-200/50 dark:bg-white/10 hover:bg-slate-300/50 dark:hover:bg-white/20 transition-colors text-slate-600 dark:text-slate-300 backdrop-blur-md active:scale-90">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Desktop Sidebar -->
+    <aside class="hidden md:flex flex-col w-72 h-screen sticky top-0 bg-white/40 dark:bg-[#0a0a0c]/40 backdrop-blur-3xl border-r border-white/40 dark:border-white/5 p-6 z-40 shadow-soft dark:shadow-none">
+        <div class="flex items-center gap-4 mb-12">
+            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-accent-400 to-accent-600 shadow-glow flex items-center justify-center text-white font-black text-2xl" style="animation:blobPulse 3s infinite alternate ease-in-out">B</div>
+            <div>
+                <h1 class="font-black text-xl leading-tight tracking-tighter">BioTrack</h1>
+                <p class="text-[10px] text-accent-500 font-black tracking-widest uppercase">Engine V8</p>
+            </div>
+        </div>
+        <nav class="flex-1 space-y-1.5">
+            <button onclick="switchTab('dashboard')" class="nav-item active w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl hover:bg-white/60 dark:hover:bg-white/10 transition-all font-bold text-slate-500" data-target="dashboard">
+                <svg class="w-6 h-6 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+                Přehled
+            </button>
+            <button onclick="switchTab('substances')" class="nav-item w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl hover:bg-white/60 dark:hover:bg-white/10 transition-all font-bold text-slate-500" data-target="substances">
+                <svg class="w-6 h-6 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+                Laboratoř
+            </button>
+            <button onclick="switchTab('analytics')" class="nav-item w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl hover:bg-white/60 dark:hover:bg-white/10 transition-all font-bold text-slate-500" data-target="analytics">
+                <svg class="w-6 h-6 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                Analytika
+            </button>
+            <button onclick="switchTab('settings')" class="nav-item w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl hover:bg-white/60 dark:hover:bg-white/10 transition-all font-bold text-slate-500" data-target="settings">
+                <svg class="w-6 h-6 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                Nastavení
+            </button>
+        </nav>
+        <button onclick="switchTab('logger')" class="w-full mt-auto bg-gradient-to-r from-accent-500 to-accent-600 text-white rounded-2xl py-4 font-black shadow-glow flex items-center justify-center gap-2 hover:scale-[1.03] active:scale-[0.97] transition-all">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+            Zapsat Dávku
+        </button>
+    </aside>
+
+    <main class="flex-1 overflow-y-auto w-full max-w-7xl mx-auto pt-[80px] pb-[100px] md:pt-8 md:pb-8 px-4 sm:px-6 md:px-8 scroll-smooth relative">
+
+        <!-- ═══════════════════════════════════════════ TAB: ZÁZNAM ═══ -->
+        <div id="tab-logger" class="tab-content max-w-xl mx-auto w-full">
+            <div class="flex justify-between items-center mb-4 animate-stagger-1">
+                <h2 class="text-2xl font-black text-slate-800 dark:text-white">Nová dávka</h2>
+                <button type="button" onclick="switchTab('dashboard')" class="text-[10px] font-bold text-slate-400 hover:text-slate-600 dark:hover:text-white uppercase transition-colors">✕ Zpět na přehled</button>
+            </div>
+            <!-- ADD DOSE FULL FORM -->
+                <form id="loggerForm" class="bento-card p-4 lg:p-5 border-t-4 border-t-accent-500 animate-stagger-2 shadow-lg relative overflow-hidden">
+                    <div id="loggerGlowBg" class="absolute inset-0 pointer-events-none opacity-5 mix-blend-multiply dark:mix-blend-screen transition-all duration-500"></div>
+                    <div class="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
+                        
+                        <!-- Top on mobile / Right on desktop: Massive Plus/Minus -->
+                        <div class="flex flex-col items-center justify-center bg-slate-50/50 dark:bg-white/5 p-4 rounded-3xl border border-slate-200/50 dark:border-white/5 md:order-last">
+                            <label class="block text-center text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3">Nastavení Množství</label>
+                            
+                            <div class="flex items-center justify-center gap-3 w-full mb-4">
+                                <button type="button" onclick="adjustAmount(-1)" class="w-14 h-14 md:w-16 md:h-16 rounded-full bg-white dark:bg-slate-800 shadow-md border-2 border-slate-100 dark:border-slate-700 flex items-center justify-center active:scale-90 transition-transform text-slate-600 dark:text-slate-300 hover:text-accent-500 hover:border-accent-500 shrink-0">
+                                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M20 12H4"/></svg>
+                                </button>
+                                
+                                <div id="loggerInputContainer" class="relative flex justify-center border-b-[3px] border-slate-200 dark:border-slate-700 focus-within:border-accent-500 mx-2 w-full max-w-[150px]">
+                                    <input type="number" id="logAmount" inputmode="decimal" required min="0" step="any" value="0" oninput="updateLoggerUI()" class="w-full bg-transparent text-center text-5xl md:text-6xl font-black outline-none tracking-tighter privacy-target pb-1" style="color:#64748b">
+                                    <div id="logUnitLabel" class="absolute right-0 bottom-2 text-base font-bold text-slate-400 transform translate-x-full pr-2">g</div>
+                                </div>
+                                
+                                <button type="button" onclick="adjustAmount(1)" class="w-14 h-14 md:w-16 md:h-16 rounded-full bg-white dark:bg-slate-800 shadow-md border-2 border-slate-100 dark:border-slate-700 flex items-center justify-center active:scale-90 transition-transform text-slate-600 dark:text-slate-300 hover:text-accent-500 hover:border-accent-500 shrink-0">
+                                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4"/></svg>
+                                </button>
+                            </div>
+                            
+                            <div class="flex justify-center gap-2 w-full flex-wrap">
+                                <button type="button" onclick="setCommonAmount(0.5)" class="text-[10px] font-black uppercase px-4 py-2 bg-white dark:bg-slate-800 rounded-full text-slate-500 shadow-sm border border-slate-100 dark:border-slate-700 hover:border-accent-500 hover:text-accent-500 transition-all active:scale-95">Micro</button>
+                                <button type="button" onclick="setCommonAmount(1.0)" class="text-[10px] font-black uppercase px-4 py-2 bg-white dark:bg-slate-800 rounded-full text-slate-500 shadow-sm border border-slate-100 dark:border-slate-700 hover:border-accent-500 hover:text-accent-500 transition-all active:scale-95">Běžná</button>
+                                <button type="button" onclick="setCommonAmount(1.5)" class="text-[10px] font-black uppercase px-4 py-2 bg-white dark:bg-slate-800 rounded-full text-slate-500 shadow-sm border border-slate-100 dark:border-slate-700 hover:border-accent-500 hover:text-accent-500 transition-all active:scale-95">Silná</button>
+                            </div>
+                        </div>
+
+                        <!-- Bottom on mobile / Left on desktop: Details -->
+                        <div class="space-y-4 md:order-first flex flex-col justify-center">
+                            <!-- Warning Box -->
+                            <div id="loggerWarnBox" style="display:none" class="flex items-center gap-2 text-red-500 bg-red-50 dark:bg-red-900/20 p-3 rounded-xl border border-red-200 dark:border-red-900/40">
+                                <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                <span class="text-xs font-bold" id="loggerWarnText">Varování</span>
+                            </div>
+
+                            <div>
+                                <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Látka & Forma</label>
+                                <div class="space-y-2">
+                                    <select id="logSubstance" required onchange="handleSubstanceChange()" class="custom-select w-full bg-slate-50 dark:bg-[#0c0c0e]/70 border-2 border-slate-200/60 dark:border-white/10 rounded-xl py-3 px-4 text-base font-black focus:border-accent-500 outline-none transition-all privacy-target text-slate-800 dark:text-white shadow-inner"></select>
+                                    <select id="logVariant" onchange="updateLoggerUI()" class="custom-select w-full bg-slate-50 dark:bg-[#0c0c0e]/70 border-2 border-slate-200/60 dark:border-white/10 rounded-xl py-2 px-4 text-sm font-bold focus:border-accent-500 outline-none transition-all hidden text-slate-700 dark:text-slate-200"></select>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Administrace</label>
+                                <input type="hidden" id="logRoute" value="oral">
+                                <div class="grid grid-cols-4 gap-1.5" id="routeSelector">
+                                    <button type="button" onclick="setRoute('oral')" class="route-btn active bg-accent-500 text-white border-accent-500 border-2 py-2.5 rounded-xl text-[10px] font-bold transition-all flex flex-col items-center gap-1 shadow-glow-sm active:scale-95" data-val="oral">Ústa</button>
+                                    <button type="button" onclick="setRoute('sublingual')" class="route-btn bg-slate-50 dark:bg-[#0c0c0e]/60 text-slate-500 border-slate-200/60 dark:border-white/10 border-2 py-2.5 rounded-xl text-[10px] font-bold transition-all flex flex-col items-center gap-1 active:scale-95" data-val="sublingual">Jazyk</button>
+                                    <button type="button" onclick="setRoute('intranasal')" class="route-btn bg-slate-50 dark:bg-[#0c0c0e]/60 text-slate-500 border-slate-200/60 dark:border-white/10 border-2 py-2.5 rounded-xl text-[10px] font-bold transition-all flex flex-col items-center gap-1 active:scale-95" data-val="intranasal">Nos</button>
+                                    <button type="button" onclick="setRoute('inhalation')" class="route-btn bg-slate-50 dark:bg-[#0c0c0e]/60 text-slate-500 border-slate-200/60 dark:border-white/10 border-2 py-2.5 rounded-xl text-[10px] font-bold transition-all flex flex-col items-center gap-1 active:scale-95" data-val="inhalation">Plíce</button>
+                                </div>
+                                <div class="text-center text-[7.5px] font-medium text-slate-400 mt-1" id="logRoaInfo">ROA ovlivňuje vlastnosti kinetiky</div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5">Čas</label>
+                                    <input type="datetime-local" id="logTime" required class="w-full bg-slate-50 dark:bg-[#0c0c0e]/70 border-2 border-slate-200/60 dark:border-white/10 rounded-xl p-2.5 text-[11px] font-bold focus:border-accent-500 outline-none h-[44px] text-slate-700 dark:text-slate-200">
+                                </div>
+                                <div class="finance-target">
+                                    <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5">Cena (Kč)</label>
+                                    <input type="number" id="logPrice" step="any" min="0" placeholder="0" class="w-full bg-slate-50 dark:bg-[#0c0c0e]/70 border-2 border-slate-200/60 dark:border-white/10 rounded-xl p-2.5 text-base font-black focus:border-accent-500 outline-none text-center privacy-target h-[44px] text-slate-800 dark:text-white shadow-inner">
+                                </div>
+                            </div>
+                            
+                            <div class="bg-slate-50 dark:bg-black/40 rounded-xl p-3 border border-slate-200/50 dark:border-white/5 shadow-inner mt-2 hidden" id="previewBoxContainer">
+                                <div class="flex items-center gap-1.5 mb-2">
+                                    <span class="text-[9px] font-black uppercase text-slate-400">Extrakce molekul</span>
+                                </div>
+                                <div id="activeCompoundsPreview" class="space-y-1.5"></div>
+                                <div class="text-center text-[9px] font-bold text-slate-500 mt-2" id="logClearanceEstimate"></div>
+                            </div>
+                        </div>
+
+                    </div>
+                    
+                    <div class="mt-4 w-full">
+                        <button type="submit" class="w-full bg-gradient-to-r from-accent-500 to-accent-600 text-white font-black py-4 rounded-2xl shadow-glow hover:shadow-glow-sm active:scale-[0.98] transition-all text-lg flex justify-center items-center gap-2 relative overflow-hidden group">
+                            <span class="relative z-10 flex items-center gap-2">
+                                Injikovat Dávku
+                            </span>
+                        </button>
+                    </div>
+                </form>
+
+                
+        </div>
+        
+        <!-- ═══════════════════════════════════════════ TAB: PŘEHLED ═══ -->
+        <div id="tab-dashboard" class="tab-content active mx-auto w-full">
+            <!-- Main Content Grid -->
+            <div class="grid grid-cols-1 gap-3">
+                
+                <!-- Kinetics Graph (Main Focus) -->
+                <div class="bento-card p-3 md:p-4 animate-stagger-1 text-center w-full">
+                    <div class="flex justify-between items-center mb-2">
+                        <h3 class="font-black text-sm md:text-base text-slate-800 dark:text-white flex items-center gap-2">
+                           <svg class="w-4 h-4 text-accent-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg> 
+                           Kinetická simulace
+                        </h3>
+                        <div class="flex gap-2 items-center">
+                            <select id="graphMode" onchange="drawKineticGraph()" class="custom-select bg-slate-100/60 dark:bg-white/10 border border-transparent text-[9px] font-bold rounded-lg py-1 pl-2 outline-none cursor-pointer text-slate-700 dark:text-slate-200">
+                                <option value="influence">Vliv (%)</option>
+                                <option value="concentration">Hladina (mg)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="w-full h-40 sm:h-52 relative bg-white/40 dark:bg-[#08080a]/50 rounded-xl overflow-hidden border border-slate-200/50 dark:border-white/5 shadow-inner">
+                        <div id="kineticCanvas" class="w-full h-full"></div>
+                    </div>
+                    <div id="dailyLimitsContainer" class="mt-2 space-y-1"></div>
+                    <div id="activeSubstancesList" class="mt-2 grid grid-cols-2 md:grid-cols-3 gap-2"></div>
+                </div>
+
+                <!-- Info Cards -->
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-2 lg:gap-3 animate-stagger-3">
+                    <div class="bento-card p-3 flex flex-col justify-center border-l-[3px] border-l-blue-500 md:flex">
+                        <div class="text-[8px] text-slate-500 font-bold uppercase tracking-widest mb-0.5">Aktivní Sub.</div>
+                        <div class="text-xl font-black text-slate-800 dark:text-white" id="dashActiveCountTxt">0</div>
+                    </div>
+                    <div class="bento-card p-3 flex flex-col justify-center border-l-[3px] border-l-purple-500">
+                        <div class="text-[8px] text-slate-500 font-bold uppercase tracking-widest mb-0.5">Dnes Dávek</div>
+                        <div class="text-xl font-black text-slate-800 dark:text-white" id="dashTotalDoses">0</div>
+                    </div>
+                    <div class="bento-card p-3 flex flex-col justify-center finance-target border-l-[3px] border-l-accent-500">
+                        <div class="text-[8px] text-slate-500 font-bold uppercase tracking-widest mb-0.5">Dnes Útrata</div>
+                        <div class="text-xl font-black privacy-target text-slate-800 dark:text-white" id="dashTotalCost">0</div>
+                    </div>
+                    <div class="bento-card p-3 flex flex-col justify-center finance-target">
+                        <div class="flex justify-between items-center mb-1.5">
+                            <span class="text-[8px] font-bold uppercase text-slate-500 tracking-widest">Trend (7d)</span>
+                            <span class="text-[10px] font-black" id="dashTrendDir">-</span>
+                        </div>
+                        <div class="w-full bg-slate-100 dark:bg-white/10 h-1.5 rounded-full overflow-hidden">
+                            <div class="h-full bg-accent-500 rounded-full transition-all" id="dashTrendBar" style="width:50%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Last Actions -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 animate-stagger-4">
+                    <div class="bento-card p-3 md:p-4 flex flex-col">
+                        <div class="flex justify-between items-center mb-3 border-b border-slate-200 dark:border-slate-800 pb-2">
+                            <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Naposledy užito</h3>
+                        </div>
+                        <div id="lastUsedWidget" class="flex flex-col gap-2">
+                            <div class="text-xs font-bold text-slate-500 p-2 text-center my-auto">Zatím žádná data.</div>
+                        </div>
+                    </div>
+                    <div class="bento-card p-3 md:p-4 flex flex-col">
+                        <div class="flex justify-between items-center mb-3 border-b border-slate-200 dark:border-slate-800 pb-2">
+                            <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Nedávná historie</h3>
+                            <button type="button" onclick="document.getElementById('btnLab-all').click();" class="text-[9px] font-bold text-accent-500 uppercase hover:underline">Laboratoř →</button>
+                        </div>
+                        <div id="recentLogs" class="space-y-2 max-h-[300px] overflow-y-auto pr-1"></div>
+                    </div>
+                </div>
+
+            </div>
+            
+            <!-- Removed unused legacy IDs -->
+            <div id="dashTrendDirMob" class="hidden"></div>
+            <div id="dashTrendBarMob" class="hidden"></div>
+        </div>
+<!-- ═══════════════════════════════════════════ TAB: LABORATOŘ ═══ -->
+        <div id="tab-substances" class="tab-content relative">
+            <div class="flex justify-between items-center mb-4 animate-stagger-1">
+                <h2 class="text-2xl font-black text-slate-800 dark:text-white">Laboratoř</h2>
+                <button onclick="openSubstanceModal()" class="hidden md:flex bg-slate-900/90 dark:bg-white/90 text-white dark:text-slate-900 px-5 py-2.5 rounded-xl font-bold shadow-md hover:scale-105 active:scale-95 transition-all items-center gap-2 text-sm">Syntetizovat novou</button>
+            </div>
+            
+            <div class="flex gap-2 mb-4 overflow-x-auto pb-2">
+                <button onclick="filterLab('all')" id="btnLab-all" class="lab-filt-btn bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 px-4 py-1.5 rounded-full text-xs font-bold text-slate-600 dark:text-slate-300 whitespace-nowrap">Všechny</button>
+                <button onclick="filterLab('active')" id="btnLab-active" class="lab-filt-btn bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-4 py-1.5 rounded-full text-xs font-bold shadow-sm whitespace-nowrap">Aktivní</button>
+                <button onclick="filterLab('archived')" id="btnLab-archived" class="lab-filt-btn bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 px-4 py-1.5 rounded-full text-xs font-bold text-slate-600 dark:text-slate-300 whitespace-nowrap">Archiv</button>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pb-20 md:pb-0" id="substancesGrid"></div>
+            
+            <button onclick="openSubstanceModal()" class="md:hidden fixed bottom-[calc(5rem+var(--safe-bottom))] right-5 w-14 h-14 bg-gradient-to-br from-accent-400 to-accent-600 text-white rounded-full shadow-glow flex items-center justify-center z-[45] active:scale-90 transition-all hover:scale-105 border border-white/20">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 5v14m7-7H5"/></svg>
+            </button>
+        </div>
+
+        <!-- ═══════════════════════════════════════════ TAB: ANALYTIKA ═══ -->
+        <div id="tab-analytics" class="tab-content">
+            <div class="flex justify-between items-center mb-3 animate-stagger-1">
+                <h2 class="text-2xl font-black text-slate-800 dark:text-white">Analytika</h2>
+                <!-- Back button for substance detail -->
+                <button id="anaBackBtn" onclick="closeSubstanceDetail()" class="hidden items-center gap-2 text-accent-500 font-bold text-sm active:scale-95 bg-accent-500/10 px-3 py-1.5 rounded-full border border-accent-500/20">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                    Zpět na přehled
+                </button>
+            </div>
+
+            <!-- Tab Navigation -->
+            <div class="flex gap-2 overflow-x-auto pb-3 mb-4 pt-1 animate-stagger-2">
+                <button onclick="switchAnaTab('summary')" id="btnAna-summary" class="ana-tab-btn whitespace-nowrap bg-slate-900/90 dark:bg-white/90 text-white dark:text-slate-900 px-4 py-2 rounded-full text-xs font-bold shadow-md">📊 Shrnutí</button>
+                <button onclick="switchAnaTab('substances')" id="btnAna-substances" class="ana-tab-btn whitespace-nowrap bg-slate-200/60 dark:bg-white/10 text-slate-600 dark:text-slate-300 px-4 py-2 rounded-full text-xs font-bold">🔬 Látky</button>
+                <button onclick="switchAnaTab('variants')" id="btnAna-variants" class="ana-tab-btn whitespace-nowrap bg-slate-200/60 dark:bg-white/10 text-slate-600 dark:text-slate-300 px-4 py-2 rounded-full text-xs font-bold">🧬 Receptory</button>
+                <button onclick="switchAnaTab('time')" id="btnAna-time" class="ana-tab-btn whitespace-nowrap bg-slate-200/60 dark:bg-white/10 text-slate-600 dark:text-slate-300 px-4 py-2 rounded-full text-xs font-bold">⏳ Časování</button>
+                <button onclick="switchAnaTab('calendar')" id="btnAna-calendar" class="ana-tab-btn whitespace-nowrap bg-slate-200/60 dark:bg-white/10 text-slate-600 dark:text-slate-300 px-4 py-2 rounded-full text-xs font-bold">📅 Kalendář</button>
+                <button onclick="switchAnaTab('finance')" id="btnAna-finance" class="ana-tab-btn finance-target whitespace-nowrap bg-slate-200/60 dark:bg-white/10 text-slate-600 dark:text-slate-300 px-4 py-2 rounded-full text-xs font-bold">📦 Finance</button>
+            </div>
+
+            <!-- ─── ANA: SHRNUTÍ ─── -->
+            <div id="ana-summary" class="ana-section active space-y-3">
+                <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+                    <div class="bento-card p-3 flex flex-col justify-center"><div class="text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-1">Záznamů</div><div class="text-xl font-black text-slate-800 dark:text-white" id="stat-totalDoses">0</div></div>
+                    <div class="bento-card p-3 flex flex-col justify-center"><div class="text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-1">Nejčastější</div><div class="text-lg font-black text-accent-500 truncate privacy-target" id="stat-favSub">-</div></div>
+                    <div class="bento-card p-3 flex flex-col justify-center col-span-2 md:col-span-1 finance-target"><div class="text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-1">Útrata celkem</div><div class="text-xl font-black text-slate-800 dark:text-white privacy-target" id="stat-totalSpend">0</div></div>
+                    <div class="bento-card p-3 flex flex-col justify-center"><div class="text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-1">Nej. Kombinace</div><div class="text-sm font-black text-slate-800 dark:text-white truncate privacy-target" id="stat-topCombo">-</div></div>
+                    <div class="bento-card p-3 flex flex-col justify-center"><div class="text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-1">Top Kategorie</div><div class="text-base font-black text-purple-500 truncate privacy-target" id="stat-favCat">-</div></div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                    <div class="bento-card p-4"><div class="mb-3"><h3 class="font-bold text-sm">Profil uživatele (Kategorie)</h3></div><div class="w-full h-44 relative flex justify-center"><div id="chart-radarCat" class="w-full h-full max-w-[300px]"></div></div></div>
+                    <div class="bento-card p-4"><div class="mb-3"><h3 class="font-bold text-sm">Nejužívanější látky</h3></div><div class="w-full h-44 relative"><div id="chart-topSubs" class="w-full h-full"></div></div></div>
+                    <div class="bento-card p-4"><div class="mb-3"><h3 class="font-bold text-sm">Distribuce síly dávky</h3><p class="text-[8px] text-slate-500 uppercase tracking-widest font-bold">% všech aplikací</p></div><div class="w-full h-44 relative flex justify-center"><div id="chart-doseStrengthPie" class="w-full h-full max-w-[300px]"></div></div></div>
+                    <div class="bento-card p-4"><div class="mb-3"><h3 class="font-bold text-sm">Mapa Aktivity (30d)</h3></div><div class="w-full h-44 relative"><div id="chart-heatmap" class="w-full h-full"></div></div></div>
+                    <div class="bento-card p-4"><div class="mb-3"><h3 class="font-bold text-sm">Cirkadiánní Aktivita</h3><p class="text-[8px] text-slate-500 uppercase tracking-widest font-bold">Poštovní hodiny aplikace</p></div><div class="w-full h-44 relative"><div id="chart-globalTod" class="w-full h-full"></div></div></div>
+                    <div class="bento-card p-4"><div class="mb-3"><h3 class="font-bold text-sm">Dlouhodobý Trend</h3><p class="text-[8px] text-slate-500 uppercase tracking-widest font-bold">Dávky (30 dní)</p></div><div class="w-full h-44 relative"><div id="chart-globalTrend" class="w-full h-full"></div></div></div>
+                </div>
+            </div>
+
+            <!-- ─── ANA: LÁTKY (NEW — substance list + click to detail) ─── -->
+            <div id="ana-substances" class="ana-section space-y-3">
+                <!-- Overview list -->
+                <div id="anaSubOverview">
+                    <div class="bento-card p-4 mb-3">
+                        <h3 class="font-bold text-sm mb-3">Klikni na látku pro detailní analýzu</h3>
+                        <div id="anaSubList" class="space-y-2"></div>
+                    </div>
+                </div>
+
+                <!-- Substance Detail Panel (hidden by default) -->
+                <div id="anaSubDetail" class="sub-detail-panel space-y-3">
+                    <!-- Header -->
+                    <div class="bento-card p-4">
+                        <div class="flex items-center gap-3 mb-3">
+                            <div id="sdIcon" class="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl shadow-glow"></div>
+                            <div class="flex-1">
+                                <h2 id="sdName" class="text-xl font-black text-slate-800 dark:text-white"></h2>
+                                <div class="flex gap-2 flex-wrap mt-1" id="sdBadges"></div>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-2xl font-black text-accent-500" id="sdTotalUses">0</div>
+                                <div class="text-[8px] font-bold text-slate-400 uppercase">Celkem užití</div>
+                            </div>
+                        </div>
+                        <!-- KPI Row -->
+                        <div class="grid grid-cols-4 gap-2">
+                            <div class="bg-slate-50 dark:bg-white/5 rounded-xl p-2 text-center"><div class="text-[7px] font-bold text-slate-400 uppercase mb-0.5">Dnes</div><div class="text-sm font-black text-slate-800 dark:text-white" id="sdToday">0</div></div>
+                            <div class="bg-slate-50 dark:bg-white/5 rounded-xl p-2 text-center"><div class="text-[7px] font-bold text-slate-400 uppercase mb-0.5">Ø/den</div><div class="text-sm font-black text-slate-800 dark:text-white" id="sdAvgDay">0</div></div>
+                            <div class="bg-slate-50 dark:bg-white/5 rounded-xl p-2 text-center finance-target"><div class="text-[7px] font-bold text-slate-400 uppercase mb-0.5">Útrata</div><div class="text-sm font-black text-slate-800 dark:text-white privacy-target" id="sdTotalCost">0</div></div>
+                            <div class="bg-slate-50 dark:bg-white/5 rounded-xl p-2 text-center"><div class="text-[7px] font-bold text-slate-400 uppercase mb-0.5">Streak</div><div class="text-sm font-black text-orange-500" id="sdStreak">0d</div></div>
+                        </div>
+                    </div>
+
+                    <!-- Charts Row 1 -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div class="bento-card p-4">
+                            <h3 class="font-bold text-sm mb-3">Denní dávky — posledních 30 dní</h3>
+                            <div class="w-full h-40 relative"><div id="sdChart-daily" class="w-full h-full"></div></div>
+                        </div>
+                        <div class="bento-card p-4">
+                            <h3 class="font-bold text-sm mb-3">Klouzavý průměr (tolerance)</h3>
+                            <div class="w-full h-40 relative"><div id="sdChart-tolerance" class="w-full h-full"></div></div>
+                        </div>
+                    </div>
+
+                    <!-- Charts Row 2 -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div class="bento-card p-4">
+                            <h3 class="font-bold text-sm mb-3">Distribuce dávek (histogram)</h3>
+                            <div class="w-full h-40 relative"><div id="sdChart-histogram" class="w-full h-full"></div></div>
+                        </div>
+                        <div class="bento-card p-4">
+                            <h3 class="font-bold text-sm mb-3">Aktivita dle dne v týdnu</h3>
+                            <div class="w-full h-40 relative"><div id="sdChart-dow" class="w-full h-full"></div></div>
+                        </div>
+                    </div>
+
+                    <!-- Charts Row 3 -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div class="bento-card p-4">
+                            <h3 class="font-bold text-sm mb-3">Cirkadiánní rytmus (hodiny)</h3>
+                            <div class="w-full h-40 relative"><div id="sdChart-tod" class="w-full h-full"></div></div>
+                        </div>
+                        <div class="bento-card p-4 finance-target">
+                            <h3 class="font-bold text-sm mb-3">Finanční stopa (30d kumulativně)</h3>
+                            <div class="w-full h-40 relative"><div id="sdChart-cost" class="w-full h-full"></div></div>
+                        </div>
+                    </div>
+
+                    <!-- Charts Row 4 — ROA + Variants -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div class="bento-card p-4">
+                            <h3 class="font-bold text-sm mb-3">Způsob podání (ROA)</h3>
+                            <div class="w-full h-36 relative flex justify-center"><div id="sdChart-roa" class="w-full h-full max-w-[260px]"></div></div>
+                        </div>
+                        <div class="bento-card p-4">
+                            <h3 class="font-bold text-sm mb-3">Varianty — počet užití</h3>
+                            <div class="w-full h-36 relative flex justify-center"><div id="sdChart-variants" class="w-full h-full max-w-[260px]"></div></div>
+                        </div>
+                    </div>
+
+                    <!-- Stats Table -->
+                    <div class="bento-card p-4">
+                        <h3 class="font-bold text-sm mb-3">Detailní statistiky látky</h3>
+                        <div id="sdStatsTable" class="grid grid-cols-2 md:grid-cols-4 gap-2"></div>
+                    </div>
+
+                    <!-- Recent doses for this substance -->
+                    <div class="bento-card p-4">
+                        <h3 class="font-bold text-sm mb-3">Posledních 10 dávek</h3>
+                        <div id="sdRecentDoses" class="space-y-2"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ─── ANA: RECEPTORY ─── -->
+            <div id="ana-variants" class="ana-section space-y-3">
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    <div class="bento-card p-3 flex flex-col justify-center"><div class="text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-1">Top Receptor</div><div class="text-base font-black text-slate-800 dark:text-white truncate" id="stat-topReceptor">-</div></div>
+                    <div class="bento-card p-3 flex flex-col justify-center"><div class="text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-1">Top Varianta</div><div class="text-base font-black text-slate-800 dark:text-white truncate privacy-target" id="stat-topVariantName">-</div></div>
+                    <div class="bento-card p-3 flex flex-col justify-center col-span-2 md:col-span-1"><div class="text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-1">Prům. účinná dávka</div><div class="text-base font-black text-accent-500 truncate privacy-target" id="stat-avgActiveDose">-</div></div>
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                    <div class="bento-card p-4 lg:col-span-2">
+                        <div class="mb-3"><h3 class="font-bold text-sm">Zatížení Receptorů</h3><p class="text-[8px] text-slate-500 uppercase tracking-widest font-bold">Zastoupení mechanismů účinku</p></div>
+                        <div class="w-full h-44 relative flex justify-center"><div id="chart-receptorsPie" class="w-full h-full max-w-[350px]"></div></div>
+                    </div>
+                    <div class="bento-card p-4 lg:col-span-2">
+                        <div class="mb-3"><h3 class="font-bold text-sm">Trend užívání (14 dní) — Top 3 látky (mg)</h3></div>
+                        <div class="w-full h-44 relative"><div id="chart-multiTrend" class="w-full h-full"></div></div>
+                        <div id="legend-multiTrend" class="flex gap-3 justify-center mt-3 text-[9px] uppercase tracking-widest font-bold text-slate-500 flex-wrap"></div>
+                    </div>
+                    <div class="bento-card p-4 lg:col-span-2 finance-target">
+                        <div class="mb-3"><h3 class="font-bold text-sm">Finanční Efektivita (mg účinné látky / 1 Kč)</h3><p class="text-[8px] text-slate-500 uppercase tracking-widest font-bold">Top 5 utrácených látek</p></div>
+                        <div id="efficiencyTable" class="space-y-2 mt-2"></div>
+                    </div>
+                    <div class="bento-card p-4"><div class="mb-3"><h3 class="font-bold text-sm">Top 6 Variant (Počet)</h3></div><div class="w-full h-40 relative"><div id="chart-topVariantsCount" class="w-full h-full"></div></div></div>
+                    <div class="bento-card p-4 finance-target"><div class="mb-3"><h3 class="font-bold text-sm">Výdaje podle variant</h3></div><div class="w-full h-40 relative flex justify-center"><div id="chart-variantCostsPie" class="w-full h-full max-w-[250px]"></div></div></div>
+                </div>
+            </div>
+
+            <!-- ─── ANA: ČASOVÁNÍ ─── -->
+            <div id="ana-time" class="ana-section space-y-3">
+                <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+                    <div class="bento-card p-3 flex flex-col justify-center"><div class="text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-1">Dní tracking</div><div class="text-xl font-black text-slate-800 dark:text-white" id="stat-daysTracked">0</div></div>
+                    <div class="bento-card p-3 flex flex-col justify-center"><div class="text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-1">Aktivní Streak</div><div class="text-lg font-black text-orange-500" id="stat-activeStreak">0d</div></div>
+                    <div class="bento-card p-3 flex flex-col justify-center"><div class="text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-1">Nejakt. den</div><div class="text-base font-black text-accent-500" id="stat-topDay">-</div></div>
+                    <div class="bento-card p-3 flex flex-col justify-center col-span-2 md:col-span-1"><div class="text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-1">Ø Odstup dávek</div><div class="text-base font-black text-orange-500 truncate" id="stat-avgDowntime">-</div></div>
+                    <div class="bento-card p-3 flex flex-col justify-center"><div class="text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-1">Nejdelší čistota</div><div class="text-xl font-black text-emerald-500" id="stat-longestSober">0d</div></div>
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                    <div class="bento-card p-4 lg:col-span-2"><div class="mb-3"><h3 class="font-bold text-sm">Frekvence dávek (14 d)</h3></div><div class="w-full h-36 relative"><canvas id="chart-trend" class="w-full h-full"></canvas></div></div>
+                    <div class="bento-card p-4 lg:col-span-2"><div class="mb-3"><h3 class="font-bold text-sm">Heatmapa denní doby (Kdy dominují látky)</h3></div><div class="w-full h-56 relative"><canvas id="chart-timeHeatmap" class="w-full h-full"></canvas></div></div>
+                    <div class="bento-card p-4"><div class="mb-3"><h3 class="font-bold text-sm">Aktivita dle dnů v týdnu</h3></div><div class="w-full h-40 relative"><canvas id="chart-dow" class="w-full h-full"></canvas></div></div>
+                    <div class="bento-card p-4"><div class="mb-3"><h3 class="font-bold text-sm">Cirkadiánní rytmus</h3></div><div class="w-full h-40 relative"><div id="chart-tod" class="w-full h-full"></div></div></div>
+                    <div class="bento-card p-4 lg:col-span-2"><div class="mb-3"><h3 class="font-bold text-sm">Preferované ROA</h3></div><div class="w-full h-32 relative flex justify-center"><div id="chart-routes" class="w-full h-full max-w-[300px]"></div></div></div>
+                </div>
+            </div>
+
+            <!-- ─── ANA: KALENDÁŘ HISTORIE ─── -->
+            <div id="ana-calendar" class="ana-section space-y-3">
+                <div class="grid grid-cols-1 xl:grid-cols-[1.15fr_.85fr] gap-3">
+                    <div class="bento-card p-4">
+                        <div class="flex items-center justify-between gap-2 mb-3">
+                            <button type="button" onclick="changeCalendarMonth(-1)" class="px-3 py-2 rounded-xl bg-slate-100/70 dark:bg-white/5 text-slate-600 dark:text-slate-300 font-black text-xs active:scale-95 transition-all">←</button>
+                            <div class="text-center">
+                                <h3 id="historyCalendarTitle" class="text-lg font-black text-slate-800 dark:text-white">Kalendář</h3>
+                                <p id="historyCalendarSubtitle" class="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Přehled dávkování po dnech</p>
+                            </div>
+                            <button type="button" onclick="changeCalendarMonth(1)" class="px-3 py-2 rounded-xl bg-slate-100/70 dark:bg-white/5 text-slate-600 dark:text-slate-300 font-black text-xs active:scale-95 transition-all">→</button>
+                        </div>
+                        <div class="flex items-center justify-between mb-3">
+                            <button type="button" onclick="jumpCalendarToday()" class="text-[10px] font-black uppercase tracking-widest text-accent-500 bg-accent-500/10 border border-accent-500/20 px-3 py-2 rounded-full">Dnes</button>
+                            <div id="historyCalendarMonthLabel" class="text-[10px] font-bold text-slate-400 uppercase tracking-widest"></div>
+                        </div>
+                        <div id="historyCalendarWeekdays" class="grid grid-cols-7 gap-1 mb-2 text-[8px] font-black uppercase tracking-widest text-slate-400"></div>
+                        <div id="historyCalendarGrid" class="grid grid-cols-7 gap-1"></div>
+                    </div>
+
+                    <div class="bento-card p-4 flex flex-col h-[700px]">
+                        <div class="flex items-start justify-between gap-3 mb-3 shrink-0">
+                            <div>
+                                <h3 class="text-lg font-black text-slate-800 dark:text-white">Detail dné</h3>
+                                <p id="historyDayLabel" class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">Vyber den v kalendáři</p>
+                            </div>
+                            <div class="text-right">
+                                <div id="historyDayCount" class="text-2xl font-black text-accent-500 leading-none">0</div>
+                                <div class="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-1">Dávek</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Chart Section (New) -->
+                        <div class="w-full h-48 shrink-0 mb-4 hidden" id="calChartWrap">
+                            <h4 class="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">Modelovaná hladina & Dávky</h4>
+                            <div class="w-full h-40 relative">
+                                <canvas id="calDayChart"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Timeline Section -->
+                        <div id="historyDaySummary" class="flex flex-wrap gap-2 mb-3 shrink-0"></div>
+                        <h4 class="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2 shrink-0">Časová osa</h4>
+                        <div id="historyTimeline" class="space-y-2 flex-1 overflow-y-auto pr-1">
+                            <div class="text-[10px] text-slate-500 font-bold text-center py-4 bg-slate-50 dark:bg-white/5 rounded-2xl">Zatím nebyl vybrán žádný den</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ─── ANA: FINANCE ─── -->
+            <div id="ana-finance" class="ana-section space-y-4">
+    <div class="flex justify-between items-center mb-1">
+        <h3 class="text-xl font-black text-slate-800 dark:text-white">Pokročilá Finanční Analýza</h3>
+    </div>
+    
+    <!-- Top KPI Cards -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div class="bento-card p-4 flex flex-col justify-center finance-target relative overflow-hidden bg-gradient-to-br from-slate-50 to-slate-100 dark:from-white/5 dark:to-white/10">
+            <div class="text-[9px] font-black tracking-widest text-slate-400 uppercase mb-1">Prům. útrata/den</div>
+            <div class="text-2xl font-black text-slate-800 dark:text-white privacy-target drop-shadow-sm" id="stat-avgSpend">0</div>
+        </div>
+        <div class="bento-card p-4 flex flex-col justify-center finance-target relative overflow-hidden bg-gradient-to-br from-red-50 to-red-100/50 dark:from-red-900/20 dark:to-red-900/10 border-red-100 dark:border-red-900/30">
+            <div class="text-[9px] font-black tracking-widest text-red-500 uppercase mb-1">Roční predikce</div>
+            <div class="text-2xl font-black text-red-600 dark:text-red-400 privacy-target drop-shadow-sm" id="stat-yearlySpend">0</div>
+            <div class="absolute -bottom-2 -right-2 opacity-10 text-red-500"><svg class="w-16 h-16" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg></div>
+        </div>
+        <div class="bento-card p-4 flex flex-col justify-center finance-target bg-gradient-to-br from-emerald-50 to-emerald-100/30 dark:from-emerald-900/20 dark:to-emerald-900/10 border-emerald-100 dark:border-emerald-900/30">
+            <div class="text-[9px] font-black tracking-widest text-emerald-600 dark:text-emerald-400 uppercase mb-1">Náklad na dávku (Ø)</div>
+            <div class="text-2xl font-black text-emerald-700 dark:text-emerald-400 privacy-target drop-shadow-sm" id="stat-costPerDose">0</div>
+        </div>
+        <div class="bento-card p-4 flex flex-col justify-center finance-target">
+            <div class="text-[9px] font-black tracking-widest text-slate-400 uppercase mb-1">Celková investice</div>
+            <div class="text-xl font-black text-slate-800 dark:text-white privacy-target" id="stat-lifetimeCost">0</div>
+        </div>
+    </div>
+    
+    <!-- Mass Stats -->
+    <div class="grid grid-cols-2 gap-3">
+        <div class="bento-card p-3 flex flex-col items-center text-center">
+            <div class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Celk. hrubá hmota</div>
+            <div class="text-lg font-black text-slate-800 dark:text-white privacy-target" id="stat-totalGross">0</div>
+        </div>
+        <div class="bento-card p-3 flex flex-col items-center text-center">
+            <div class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Celk. účinná hmota</div>
+            <div class="text-lg font-black text-accent-500 privacy-target" id="stat-totalActive">0</div>
+        </div>
+    </div>
+    
+    <!-- Charts Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <!-- Spend Trend -->
+        <div class="bento-card p-5 lg:col-span-2 finance-target shadow-md border-t border-t-accent-500/20">
+            <div class="flex justify-between items-start mb-4">
+                <div>
+                    <h3 class="font-black text-sm text-slate-800 dark:text-white">Finanční stopa (14 d kumulativně)</h3>
+                    <p class="text-[9px] text-slate-500 uppercase tracking-widest font-bold mt-1">Vývoj výdajů v čase</p>
+                </div>
+            </div>
+            <div class="w-full h-48 relative"><div id="chart-spendTrend" class="w-full h-full"></div></div>
+        </div>
+
+        <!-- Monthly Spend -->
+         <div class="bento-card p-4 finance-target">
+            <div class="mb-3">
+                <h3 class="font-bold text-sm">Měsíční výdaje</h3>
+                <p class="text-[8px] text-slate-500 uppercase tracking-widest font-bold">Porovnání posledních 6 měsíců</p>
+            </div>
+            <div class="w-full h-44 relative"><div id="chart-monthlySpend" class="w-full h-full"></div></div>
+        </div>
+
+        <!-- Cost by Category (Polar/Pie) -->
+        <div class="bento-card p-4 finance-target">
+            <div class="mb-3">
+                <h3 class="font-bold text-sm">Kde končí peníze (Kategorie)</h3>
+            </div>
+            <div class="w-full h-44 relative flex justify-center"><div id="chart-costByCat" class="w-full h-full max-w-[300px]"></div></div>
+        </div>
+        
+        <!-- Cost by Substance (Bar) -->
+        <div class="bento-card p-4 finance-target lg:col-span-2">
+            <div class="mb-3">
+                <h3 class="font-bold text-sm">Absolutní výdaje dle látek (Top 10)</h3>
+            </div>
+            <div class="w-full h-48 relative"><div id="chart-topCostSubs" class="w-full h-full"></div></div>
+        </div>
+
+        <!-- Tolerence Trend -->
+        <div class="bento-card p-4 lg:col-span-2">
+            <div class="mb-3">
+                <h3 class="font-bold text-sm">Vývoj Tolerance (klouzavý průměr)</h3>
+                <p class="text-[8px] text-slate-500 uppercase tracking-widest font-bold">Průměrná denní aktivní hmota — 14 dní</p>
+            </div>
+            <div class="w-full h-44 relative"><div id="chart-toleranceTrend" class="w-full h-full"></div></div>
+        </div>
+
+        <!-- Active Mass Trend -->
+        <div class="bento-card p-4 lg:col-span-2">
+            <div class="mb-3">
+                <h3 class="font-bold text-sm">Zátěž (Aktivní hmota mg/den)</h3>
+            </div>
+            <div class="w-full h-44 relative"><div id="chart-activeMassTrend" class="w-full h-full"></div></div>
+        </div>
+        
+        <!-- Logistics container -->
+        <div class="bento-card p-4 lg:col-span-2">
+            <div class="mb-4">
+                <h3 class="font-bold text-sm">Logistika & Výdrž zásob</h3>
+                <p class="text-[8px] text-slate-500 uppercase tracking-widest font-bold">Počítáno z průměrné spotřeby za 14 dní</p>
+            </div>
+            <div id="logisticsContainer" class="grid grid-cols-1 md:grid-cols-3 gap-3"></div>
+        </div>
+    </div>
+</div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════ TAB: NASTAVENÍ ═══ -->
+        <div id="tab-settings" class="tab-content max-w-2xl mx-auto space-y-4">
+            <h2 class="text-2xl font-black mb-4 text-slate-800 dark:text-white animate-stagger-1">Nastavení & Systém</h2>
+            
+            <div class="bento-card p-4 animate-stagger-2">
+                <h3 class="text-[9px] font-black text-accent-500 uppercase tracking-widest mb-3">Fyzický profil</h3>
+                <div class="grid grid-cols-2 gap-3 mb-3">
+                    <div><label class="block text-[9px] font-bold uppercase text-slate-500 mb-1">Váha (kg)</label><input type="number" id="setWeight" class="w-full bg-slate-100/60 dark:bg-[#0c0c0e]/60 border border-slate-200/50 dark:border-white/10 rounded-xl p-2.5 text-sm font-bold outline-none text-center focus:ring-2 focus:ring-accent-500"></div>
+                    <div><label class="block text-[9px] font-bold uppercase text-slate-500 mb-1">Věk</label><input type="number" id="setAge" class="w-full bg-slate-100/60 dark:bg-[#0c0c0e]/60 border border-slate-200/50 dark:border-white/10 rounded-xl p-2.5 text-sm font-bold outline-none text-center focus:ring-2 focus:ring-accent-500"></div>
+                </div>
+                <div><label class="block text-[9px] font-bold uppercase text-slate-500 mb-1">Metabolismus</label>
+                <select id="setMetabolism" class="custom-select w-full bg-slate-100/60 dark:bg-[#0c0c0e]/60 border border-slate-200/50 dark:border-white/10 rounded-xl p-2.5 text-sm font-bold outline-none focus:ring-2 focus:ring-accent-500">
+                    <option value="slow">Pomalý (delší poločas 1.3×)</option>
+                    <option value="medium">Střední (výchozí 1.0×)</option>
+                    <option value="fast">Rychlý (kratší poločas 0.7×)</option>
+                </select></div>
+            </div>
+
+            <div class="bento-card p-4 animate-stagger-3">
+                <h3 class="text-[9px] font-black text-accent-500 uppercase tracking-widest mb-3">Aplikace & Prostředí</h3>
+                <div class="space-y-3">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div><label class="block text-[9px] font-bold uppercase text-slate-500 mb-1">Barevné Téma</label>
+                        <select id="setAccent" class="custom-select w-full bg-slate-100/60 dark:bg-[#0c0c0e]/60 border border-slate-200/50 dark:border-white/10 rounded-xl p-2.5 text-sm font-bold outline-none focus:ring-2 focus:ring-accent-500">
+                            <option value="emerald">Smaragdová</option><option value="blue">Safírová</option><option value="purple">Ametystová</option><option value="rose">Rubínová</option>
+                        </select></div>
+                        <div><label class="block text-[9px] font-bold uppercase text-slate-500 mb-1">Měna</label>
+                        <select id="setCurrency" class="custom-select w-full bg-slate-100/60 dark:bg-[#0c0c0e]/60 border border-slate-200/50 dark:border-white/10 rounded-xl p-2.5 text-sm font-bold outline-none focus:ring-2 focus:ring-accent-500">
+                            <option value="CZK">Kč (CZK)</option><option value="EUR">€ (EUR)</option><option value="USD">$ (USD)</option>
+                        </select></div>
+                        <div><label class="block text-[9px] font-bold uppercase text-slate-500 mb-1">První den v týdnu</label>
+                        <select id="setFirstDay" class="custom-select w-full bg-slate-100/60 dark:bg-[#0c0c0e]/60 border border-slate-200/50 dark:border-white/10 rounded-xl p-2.5 text-sm font-bold outline-none focus:ring-2 focus:ring-accent-500">
+                            <option value="1">Pondělí</option><option value="0">Neděle</option>
+                        </select></div>
+                    </div>
+                    <div class="pt-3 border-t border-slate-200/50 dark:border-white/5 space-y-3">
+                        <div class="flex justify-between items-center"><p class="font-bold text-xs">OLED Dark Mode</p><input type="checkbox" id="setDarkmode" class="toggle-checkbox sr-only peer"><label for="setDarkmode" class="toggle-label relative w-10 h-5 bg-slate-200/80 dark:bg-white/10 rounded-full cursor-pointer transition-colors peer-checked:bg-accent-500 after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full shadow-inner"></label></div>
+                        <div class="flex justify-between items-center"><p class="font-bold text-xs">Trvale skrýt Finance</p><input type="checkbox" id="setHideFinance" class="toggle-checkbox sr-only peer"><label for="setHideFinance" class="toggle-label relative w-10 h-5 bg-slate-200/80 dark:bg-white/10 rounded-full cursor-pointer transition-colors peer-checked:bg-accent-500 after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full shadow-inner"></label></div>
+                        <div class="flex justify-between items-center"><p class="font-bold text-xs">Kompaktní UI (Historie)</p><input type="checkbox" id="setCompact" class="toggle-checkbox sr-only peer"><label for="setCompact" class="toggle-label relative w-10 h-5 bg-slate-200/80 dark:bg-white/10 rounded-full cursor-pointer transition-colors peer-checked:bg-accent-500 after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full shadow-inner"></label></div>
+                        <div class="flex justify-between items-center"><p class="font-bold text-xs">Vypnout varovné pulzování</p><input type="checkbox" id="setDisableWarn" class="toggle-checkbox sr-only peer"><label for="setDisableWarn" class="toggle-label relative w-10 h-5 bg-slate-200/80 dark:bg-white/10 rounded-full cursor-pointer transition-colors peer-checked:bg-accent-500 after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full shadow-inner"></label></div>
+                    </div>
+                </div>
+                <button onclick="saveSettings()" class="w-full mt-4 bg-slate-900/90 dark:bg-white/90 text-white dark:text-slate-900 font-bold py-3 rounded-xl active:scale-[0.98] transition-transform text-sm shadow-md">Uložit Nastavení</button>
+                <button id="installPwaBtn" onclick="installPWA()" class="w-full mt-2 bg-accent-500/10 text-accent-500 border border-accent-500/20 font-black py-3 rounded-xl active:scale-[0.98] transition-transform text-sm hidden">📲 Instalovat PWA</button>
+                <div id="pwaStatusText" class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-2 text-center">PWA: připraveno</div>
+            </div>
+
+            <div class="bento-card p-4 border border-red-500/20 animate-stagger-4">
+                <h3 class="text-[9px] font-black text-red-500 uppercase tracking-widest mb-3">Správa Dat</h3>
+                <div class="grid grid-cols-2 gap-2 mb-3">
+                    <button onclick="exportData()" class="py-2.5 bg-slate-100/80 dark:bg-white/5 rounded-xl text-xs font-bold hover:bg-slate-200 transition-colors">Export JSON</button>
+                    <label class="py-2.5 bg-slate-100/80 dark:bg-white/5 rounded-xl text-xs font-bold flex items-center justify-center cursor-pointer hover:bg-slate-200 transition-colors">Import JSON<input type="file" accept=".json" class="hidden" onchange="importData(event)"></label>
+                </div>
+                <button onclick="confirmWipe()" class="w-full py-2.5 border border-red-200/60 dark:border-red-900/40 text-red-500 rounded-xl text-xs font-bold bg-red-50/40 dark:bg-red-900/10 hover:bg-red-100 transition-colors active:scale-95">Kompletně vymazat data</button>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- ═══════════════════════════════════════════ MOBILE NAV ═══ -->
+    <nav id="mobileNav" class="md:hidden fixed bottom-0 w-full z-50 bg-white/40 dark:bg-black/30 backdrop-blur-[32px] saturate-[140%] border-t border-white/40 dark:border-white/5 pb-[var(--safe-bottom)] shadow-[0_-10px_40px_rgba(0,0,0,0.05)] dark:shadow-none transition-transform duration-300">
+        <div class="flex justify-around items-end h-[68px] px-2 pb-1.5">
+            <button onclick="switchTab('dashboard')" class="nav-item active flex-1 flex flex-col items-center text-slate-400 py-1 transition-transform active:scale-90" data-target="dashboard">
+                <svg class="w-5 h-5 mb-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+                <span class="text-[9px] font-bold">Přehled</span>
+            </button>
+            <button onclick="switchTab('substances')" class="nav-item flex-1 flex flex-col items-center text-slate-400 py-1 transition-transform active:scale-90" data-target="substances">
+                <svg class="w-5 h-5 mb-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+                <span class="text-[9px] font-bold">Látky</span>
+            </button>
+            <div class="flex-1 flex justify-center relative -top-5">
+                <button onclick="switchTab('logger')" class="w-14 h-14 bg-gradient-to-br from-accent-400 to-accent-600 rounded-full text-white shadow-glow flex items-center justify-center border-[3px] border-[#f0f4f8] dark:border-[#050505] active:scale-90 transition-transform hover:scale-105">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4"/></svg>
+                </button>
+            </div>
+            <button onclick="switchTab('analytics')" class="nav-item flex-1 flex flex-col items-center text-slate-400 py-1 transition-transform active:scale-90" data-target="analytics">
+                <svg class="w-5 h-5 mb-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                <span class="text-[9px] font-bold">Data</span>
+            </button>
+            <button onclick="switchTab('settings')" class="nav-item flex-1 flex flex-col items-center text-slate-400 py-1 transition-transform active:scale-90" data-target="settings">
+                <svg class="w-5 h-5 mb-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                <span class="text-[9px] font-bold">Menu</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- ═══════════════════════════════════════════ MODALS ═══ -->
+    <div id="toastContainer" class="fixed top-20 md:bottom-6 md:top-auto left-4 right-4 md:left-auto md:right-6 z-[80] flex flex-col space-y-2 pointer-events-none items-center md:items-end"></div>
+
+    <!-- Confirm Dialog -->
+    <div id="confirmDialog" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md modal-overlay z-[70] hidden items-center justify-center p-4">
+        <div class="bg-white/60 dark:bg-[#08080a]/50 backdrop-blur-3xl border border-white/40 dark:border-white/10 w-full max-w-sm rounded-3xl p-5 shadow-[0_20px_60px_rgba(0,0,0,0.2)] text-center scale-95 transition-transform" id="confirmDialogInner">
+            <h3 class="text-lg font-black mb-1 text-slate-800 dark:text-white" id="confirmTitle">Varování</h3>
+            <p class="text-xs text-slate-500 mb-5" id="confirmText">?</p>
+            <div class="flex gap-2">
+                <button onclick="closeConfirm(false)" class="flex-1 py-3 bg-slate-100/80 dark:bg-white/10 rounded-xl text-xs font-bold hover:bg-slate-200/80 transition-colors active:scale-95">Zrušit</button>
+                <button onclick="closeConfirm(true)" class="flex-1 py-3 bg-red-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-red-500/30 hover:bg-red-600 transition-colors active:scale-95">Potvrdit</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Dose Modal -->
+    <div id="quickDoseModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md modal-overlay z-[60] hidden flex-col justify-end md:justify-center items-center md:p-4">
+        <div class="bg-white/60 dark:bg-[#08080a]/50 backdrop-blur-3xl w-full md:max-w-xl md:rounded-3xl rounded-t-3xl shadow-[0_20px_60px_rgba(0,0,0,0.2)] border border-white/40 dark:border-white/10 flex flex-col h-[85vh] md:h-auto max-h-[85vh] transform transition-transform translate-y-full" id="quickDoseModalInner">
+            <div class="flex justify-between items-center p-4 border-b border-slate-200/60 dark:border-white/5 rounded-t-3xl sticky top-0 z-10 bg-white/40 dark:bg-[#08080a]/30 backdrop-blur-[40px] saturate-[150%]">
+                <button onclick="closeQuickDoseModal()" class="text-slate-400 font-bold text-sm active:scale-95">Zavřít</button>
+                <h3 class="text-base font-black text-slate-800 dark:text-white flex items-center gap-2">
+                    <svg class="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                    Rychlé akce
+                </h3>
+                <div class="w-10"></div>
+            </div>
+            <div class="flex-1 overflow-y-auto p-4 space-y-3 pb-[calc(var(--safe-bottom)+2rem)]">
+                <div id="quickDosesGrid" class="grid grid-cols-2 md:grid-cols-3 gap-3"></div>
+                <button onclick="openQuickDoseEditModal()" class="w-full mt-4 border-2 border-dashed border-slate-300 dark:border-white/20 text-slate-500 dark:text-slate-400 font-bold py-4 rounded-2xl hover:bg-slate-100 dark:hover:bg-white/5 transition-colors active:scale-[0.98] flex justify-center items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                    Vytvořit novou předvolbu
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Dose Editor Modal -->
+    <div id="quickDoseEditModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md modal-overlay z-[70] hidden flex-col justify-end md:justify-center items-center md:p-4">
+        <div class="bg-white/60 dark:bg-[#08080a]/50 backdrop-blur-3xl w-full md:max-w-md md:rounded-3xl rounded-t-3xl shadow-[0_20px_60px_rgba(0,0,0,0.2)] border border-white/40 dark:border-white/10 flex flex-col transform transition-transform translate-y-full" id="quickDoseEditModalInner">
+            <div class="flex justify-between items-center p-4 border-b border-slate-200/60 dark:border-white/5 rounded-t-3xl bg-white/40 dark:bg-[#08080a]/30 backdrop-blur-[40px] saturate-[150%]">
+                <button onclick="closeQuickDoseEditModal()" class="text-slate-400 font-bold text-sm active:scale-95">Zpět</button>
+                <h3 class="text-base font-black text-slate-800 dark:text-white" id="qdEditTitle">Nová předvolba</h3>
+                <button onclick="saveQuickDose()" class="text-accent-500 font-bold text-sm active:scale-95">Uložit</button>
+            </div>
+            <div class="p-4 space-y-4 pb-[calc(var(--safe-bottom)+2rem)]">
+                <input type="hidden" id="qdId">
+                <div class="grid grid-cols-4 gap-2">
+                    <div class="col-span-3"><label class="block text-[8px] font-bold uppercase text-slate-500 mb-1">Vlastní název</label><input type="text" id="qdName" placeholder="Např. Ranní nakopnutí" class="w-full bg-slate-100/60 dark:bg-white/5 border border-slate-200/50 dark:border-white/10 rounded-xl p-2.5 text-sm font-bold outline-none focus:ring-2 focus:ring-accent-500"></div>
+                    <div class="col-span-1"><label class="block text-[8px] font-bold uppercase text-slate-500 mb-1">Ikona</label><input type="text" id="qdIcon" maxlength="2" placeholder="⚡" class="w-full bg-slate-100/60 dark:bg-white/5 border border-slate-200/50 dark:border-white/10 rounded-xl p-2.5 text-sm font-bold text-center outline-none focus:ring-2 focus:ring-accent-500"></div>
+                </div>
+                <div>
+                    <label class="block text-[8px] font-bold uppercase text-slate-500 mb-1">Látka & Varianta</label>
+                    <select id="qdSubstance" required onchange="handleQdSubstanceChange()" class="custom-select w-full bg-slate-100/60 dark:bg-white/5 border border-slate-200/50 dark:border-white/10 rounded-xl p-2.5 text-sm font-bold outline-none focus:ring-2 focus:ring-accent-500 mb-2"></select>
+                    <select id="qdVariant" class="custom-select w-full bg-slate-100/60 dark:bg-white/5 border border-slate-200/50 dark:border-white/10 rounded-xl p-2.5 text-xs font-bold outline-none focus:ring-2 focus:ring-accent-500 hidden"></select>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-[8px] font-bold uppercase text-slate-500 mb-1">Množství</label>
+                        <div class="relative">
+                            <input type="number" id="qdAmount" step="any" min="0" value="0" class="w-full bg-slate-100/60 dark:bg-white/5 border border-slate-200/50 dark:border-white/10 rounded-xl p-2.5 text-base font-black outline-none focus:ring-2 focus:ring-accent-500 text-center">
+                            <div id="qdUnitLabel" class="absolute right-3 top-2.5 text-sm font-bold text-slate-400">g</div>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-[8px] font-bold uppercase text-slate-500 mb-1">ROA</label>
+                        <select id="qdRoute" class="custom-select w-full bg-slate-100/60 dark:bg-white/5 border border-slate-200/50 dark:border-white/10 rounded-xl p-2.5 text-xs font-bold outline-none focus:ring-2 focus:ring-accent-500 h-[46px]">
+                            <option value="oral">Ústa</option><option value="sublingual">Pod jazyk</option><option value="intranasal">Nos</option><option value="inhalation">Plíce</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="button" onclick="deleteQuickDose()" id="btnDelQd" class="w-full mt-2 py-3 bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400 rounded-xl text-xs font-bold hidden border border-red-200/60 dark:border-red-900/30 active:scale-95">Smazat Předvolbu</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Substance Editor Modal -->
+    <div id="substanceModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md modal-overlay z-[60] hidden flex-col justify-end md:justify-center items-center md:p-4">
+        <div class="bg-white/60 dark:bg-[#08080a]/50 backdrop-blur-3xl w-full md:max-w-4xl md:rounded-3xl rounded-t-3xl shadow-[0_20px_60px_rgba(0,0,0,0.2)] border border-white/40 dark:border-white/10 flex flex-col h-[95vh] md:h-auto max-h-[95vh] transform transition-transform translate-y-full" id="subModalInner">
+            <div class="flex justify-between items-center p-4 border-b border-slate-200/60 dark:border-white/5 rounded-t-3xl sticky top-0 z-10 bg-white/40 dark:bg-[#08080a]/30 backdrop-blur-[40px] saturate-[150%]">
+                <button onclick="closeSubstanceModal()" class="text-slate-400 font-bold text-sm active:scale-95">Zavřít</button>
+                <h3 class="text-base font-black text-slate-800 dark:text-white" id="subModalTitle">Editor Látky</h3>
+                <button onclick="saveSubstance()" class="text-accent-500 font-bold text-sm active:scale-95">Uložit</button>
+            </div>
+            <div class="flex-1 overflow-y-auto p-4 space-y-4 pb-[calc(var(--safe-bottom)+2rem)]">
+                <input type="hidden" id="subId">
+                <!-- SEKCE 1 -->
+                <div class="p-3.5 rounded-xl bg-slate-50/60 dark:bg-white/5 border border-slate-200/30 dark:border-transparent">
+                    <h4 class="text-[9px] font-black uppercase text-accent-500 tracking-widest mb-2">1. Identifikace</h4>
+                    <div class="grid grid-cols-6 gap-2.5">
+                        <div class="col-span-4 md:col-span-3"><label class="block text-[8px] font-bold uppercase text-slate-500 mb-1">Název Produktu</label><input type="text" id="subName" class="w-full bg-white/80 dark:bg-[#050505]/80 border border-slate-200/60 dark:border-white/5 rounded-lg p-2 text-xs font-bold outline-none focus:ring-2 focus:ring-accent-500"></div>
+                        <div class="col-span-2 md:col-span-1"><label class="block text-[8px] font-bold uppercase text-slate-500 mb-1">Ikona</label><input type="text" id="subIcon" maxlength="2" placeholder="💊" class="w-full bg-white/80 dark:bg-[#050505]/80 border border-slate-200/60 dark:border-white/5 rounded-lg p-2 text-xs font-bold text-center outline-none focus:ring-2 focus:ring-accent-500"></div>
+                        <div class="col-span-3 md:col-span-2"><label class="block text-[8px] font-bold uppercase text-slate-500 mb-1">Hodnocení</label><select id="subRating" class="custom-select w-full bg-white/80 dark:bg-[#050505]/80 border border-slate-200/60 dark:border-white/5 rounded-lg p-2 text-xs font-bold outline-none focus:ring-2 focus:ring-accent-500"><option value="5">⭐⭐⭐⭐⭐</option><option value="4">⭐⭐⭐⭐</option><option value="3" selected>⭐⭐⭐</option><option value="2">⭐⭐</option><option value="1">⭐</option><option value="0">Bez hodnocení</option></select></div>
+                        <div class="col-span-3 md:col-span-2"><label class="block text-[8px] font-bold uppercase text-slate-500 mb-1">Výrobce</label><input type="text" id="subBrand" class="w-full bg-white/80 dark:bg-[#050505]/80 border border-slate-200/60 dark:border-white/5 rounded-lg p-2 text-xs font-bold outline-none focus:ring-2 focus:ring-accent-500"></div>
+                        <div class="col-span-6 md:col-span-4"><label class="block text-[8px] font-bold uppercase text-slate-500 mb-1">Stav</label><select id="subStatus" class="custom-select w-full bg-white/80 dark:bg-[#050505]/80 border border-slate-200/60 dark:border-white/5 rounded-lg p-2 text-xs font-bold outline-none focus:ring-2 focus:ring-accent-500"><option value="active">Aktivní</option><option value="archived">Archivováno</option></select></div>
+                    </div>
+                </div>
+                <!-- SEKCE 2 -->
+                <div class="p-3.5 rounded-xl bg-slate-50/60 dark:bg-white/5 border border-slate-200/30 dark:border-transparent">
+                    <h4 class="text-[9px] font-black uppercase text-accent-500 tracking-widest mb-2">2. Klasifikace & Mechanismus</h4>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-2.5">
+                        <div><label class="block text-[8px] font-bold uppercase text-slate-500 mb-1">Kategorie</label><select id="subCategory" class="custom-select w-full bg-white/80 dark:bg-[#050505]/80 border border-slate-200/60 dark:border-white/5 rounded-lg p-2 text-xs font-bold outline-none"><option value="stimulant">Stimulant</option><option value="sedativum">Sedativum</option><option value="psychedelikum">Psychedelikum</option><option value="entaktogen">Entaktogen</option><option value="disociativum">Disociativum</option><option value="nootropikum">Nootropikum</option><option value="jine">Jiné</option></select></div>
+                        <div><label class="block text-[8px] font-bold uppercase text-slate-500 mb-1">Cílový Receptor</label><select id="subReceptor" class="custom-select w-full bg-white/80 dark:bg-[#050505]/80 border border-slate-200/60 dark:border-white/5 rounded-lg p-2 text-xs font-bold outline-none text-purple-600 dark:text-purple-400"><option value="Neuveden">Neznámý</option><option value="Dopamin">Dopamin (DA)</option><option value="Serotonin">Serotonin (5-HT)</option><option value="GABA">GABA</option><option value="Opioid">Opioidní</option><option value="Kanabinoid">Kanabinoidní (CB)</option><option value="Adrenergni">Adrenergní</option><option value="Cholin">Cholinergní</option></select></div>
+                        <div><label class="block text-[8px] font-bold uppercase text-slate-500 mb-1">Forma</label><select id="subForm" class="custom-select w-full bg-white/80 dark:bg-[#050505]/80 border border-slate-200/60 dark:border-white/5 rounded-lg p-2 text-xs font-bold outline-none"><option value="prasek">Prášek</option><option value="kapsle">Kapsle</option><option value="tekutina">Tekutina</option><option value="krystal">Krystal</option><option value="bylina">Bylina</option><option value="jine">Jiné</option></select></div>
+                        <div><label class="block text-[8px] font-bold uppercase text-slate-500 mb-1">Legislativa</label><select id="subLegal" class="custom-select w-full bg-white/80 dark:bg-[#050505]/80 border border-slate-200/60 dark:border-white/5 rounded-lg p-2 text-xs font-bold outline-none"><option value="legal">Legální</option><option value="rx">Předpis (Rx)</option><option value="grey">Šedá zóna</option><option value="illegal">Nelegální</option></select></div>
+                        <div><label class="block text-[8px] font-bold uppercase text-slate-500 mb-1">Výchozí ROA</label><select id="subDefaultRoa" class="custom-select w-full bg-white/80 dark:bg-[#050505]/80 border border-slate-200/60 dark:border-white/5 rounded-lg p-2 text-xs font-bold outline-none"><option value="oral">Ústa</option><option value="sublingual">Pod jazyk</option><option value="intranasal">Nos</option><option value="inhalation">Plíce</option></select></div>
+                        <div><label class="block text-[8px] font-bold uppercase text-slate-500 mb-1">Riziko závislosti</label><select id="subAddiction" class="custom-select w-full bg-white/80 dark:bg-[#050505]/80 border border-slate-200/60 dark:border-white/5 rounded-lg p-2 text-xs font-bold outline-none"><option value="low">Nízké</option><option value="medium">Střední</option><option value="high">Vysoké</option></select></div>
+                        <div class="col-span-2"><label class="block text-[8px] font-bold uppercase text-slate-500 mb-1">Bezpečnostní štítek</label><input type="text" id="subWarning" placeholder="Např. Neřídit" class="w-full bg-white/80 dark:bg-[#050505]/80 border border-red-200/60 dark:border-red-900/40 rounded-lg p-2 text-xs font-bold outline-none text-red-500 placeholder:text-red-300 dark:placeholder:text-red-900"></div>
+                    </div>
+                </div>
+                <!-- SEKCE 3 -->
+                <div class="p-3.5 rounded-xl bg-slate-50/60 dark:bg-white/5 border border-slate-200/30 dark:border-transparent">
+                    <h4 class="text-[9px] font-black uppercase text-accent-500 tracking-widest mb-2">3. Logistika & Limity</h4>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-2.5">
+                        <div class="col-span-2 md:col-span-1 finance-target"><label class="block text-[8px] font-bold uppercase text-slate-500 mb-1">Základní Cena</label><input type="number" id="subBasePrice" step="any" min="0" placeholder="0" class="w-full bg-white/80 dark:bg-[#050505]/80 border border-slate-200/60 dark:border-white/5 rounded-lg p-2 text-xs font-bold outline-none focus:ring-2 focus:ring-accent-500"></div>
+                        <div class="col-span-2 md:col-span-1"><label class="block text-[8px] font-bold uppercase text-slate-500 mb-1">Velikost Balení</label><input type="number" id="subPackageSize" step="any" min="0" placeholder="0" class="w-full bg-white/80 dark:bg-[#050505]/80 border border-slate-200/60 dark:border-white/5 rounded-lg p-2 text-xs font-bold outline-none focus:ring-2 focus:ring-blue-500"></div>
+                        <div class="col-span-2"><label class="block text-[8px] font-bold uppercase text-slate-500 mb-1">Max. bezpečná denní dávka</label><input type="number" id="subMaxDose" step="any" min="0" placeholder="Nenastaveno" class="w-full bg-white/80 dark:bg-[#050505]/80 border border-red-200/60 dark:border-red-900/40 rounded-lg p-2 text-xs font-bold outline-none focus:ring-2 focus:ring-red-500 text-red-600 dark:text-red-400"></div>
+                    </div>
+                </div>
+                <!-- SEKCE 4 -->
+                <div class="p-3.5 rounded-xl border border-slate-200/60 dark:border-white/10">
+                    <h4 class="text-[9px] font-black uppercase text-accent-500 tracking-widest mb-2">4. Dávkování & Složení</h4>
+                    <div class="grid grid-cols-2 gap-2.5 mb-3 pb-3 border-b border-slate-200/50 dark:border-white/5">
+                        <div><label class="block text-[8px] font-bold uppercase text-slate-500 mb-1">Jednotka</label><select id="subUnit" onchange="r_comps()" class="custom-select w-full bg-slate-50 dark:bg-white/5 border border-slate-200/60 dark:border-white/5 rounded-lg p-2 text-xs font-bold outline-none"><option value="mg">mg</option><option value="g">g</option><option value="ml">ml</option><option value="ks">ks</option></select></div>
+                        <div><label class="block text-[8px] font-bold uppercase text-slate-500 mb-1">Krok (+/- tlačítka)</label><input type="number" id="subStep" step="any" class="w-full bg-slate-50 dark:bg-white/5 border border-slate-200/60 dark:border-white/5 rounded-lg p-2 text-xs font-bold outline-none"></div>
+                    </div>
+                    <div id="compoundsContainer" class="space-y-2.5 mb-2"></div>
+                    <button type="button" onclick="addCompoundUI()" class="text-[9px] font-bold text-accent-600 dark:text-accent-400 bg-accent-500/15 px-3 py-2 rounded-lg w-full active:scale-[0.98]">+ Přidat účinnou molekulu</button>
+                </div>
+                <!-- SEKCE 5 -->
+                <div class="p-3.5 rounded-xl border border-slate-200/60 dark:border-white/10">
+                    <h4 class="text-[9px] font-black uppercase text-accent-500 tracking-widest mb-1">5. Druhy / Varianty</h4>
+                    <div id="variantsContainer" class="space-y-2.5 mb-2 mt-2"></div>
+                    <button type="button" onclick="addVariantUI()" class="text-[9px] font-bold text-slate-600 dark:text-slate-300 bg-slate-200/60 dark:bg-white/10 px-3 py-2 rounded-lg w-full active:scale-[0.98]">+ Přidat variantu</button>
+                </div>
+                <button type="button" onclick="deleteCurrentSubstance()" id="btnDelSub" class="w-full py-3 bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400 rounded-xl text-xs font-bold hidden border border-red-200/60 dark:border-red-900/30 active:scale-95">Smazat Látku</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Curve Modal -->
+    <div id="curveModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-md modal-overlay z-[70] hidden flex-col justify-end md:justify-center items-center md:p-4">
+        <div class="bg-white/60 dark:bg-[#08080a]/50 backdrop-blur-3xl w-full md:max-w-md md:rounded-3xl rounded-t-3xl p-5 shadow-[0_20px_60px_rgba(0,0,0,0.2)] border border-white/40 dark:border-white/10">
+            <h3 class="text-base font-black mb-1">Vlastní křivka absorpce</h3>
+            <div id="curvePointsList" class="space-y-2 mb-4 max-h-48 overflow-y-auto"></div>
+            <div class="flex gap-2 mb-5">
+                <input type="number" id="newCurveT" placeholder="Čas (min)" class="w-1/2 bg-slate-100/80 dark:bg-white/5 border border-slate-200/60 dark:border-white/10 rounded-lg p-2.5 text-xs font-bold outline-none">
+                <input type="number" id="newCurveC" placeholder="Efekt (%)" class="w-1/2 bg-slate-100/80 dark:bg-white/5 border border-slate-200/60 dark:border-white/10 rounded-lg p-2.5 text-xs font-bold outline-none">
+                <button type="button" onclick="addCurvePoint()" class="bg-accent-500 text-white font-bold px-4 rounded-lg text-lg active:scale-90">+</button>
+            </div>
+            <button type="button" onclick="closeCurveModal()" class="w-full bg-slate-900/90 dark:bg-white/90 text-white dark:text-slate-900 font-bold py-3 rounded-xl shadow-md active:scale-95">Hotovo</button>
+        </div>
+    </div>
+</body>
+</html>
